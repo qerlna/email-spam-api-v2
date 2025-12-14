@@ -1,7 +1,6 @@
 package com.example.emailspamapi.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,59 +11,47 @@ public class SmsMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "classification", nullable = false)
-    private String classification; // "spam" или "ham"
-
-    @Column(name = "message", length = 1000)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
 
-    @Column(name = "details", length = 2000)
-    private String details; // Добавляем поле для деталей
+    @Column(nullable = false)
+    private String classification; // "spam" или "ham"
 
-    @CreationTimestamp
+    @Column(columnDefinition = "TEXT")
+    private String details;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Constructors
+    // Конструкторы
     public SmsMessage() {}
 
     public SmsMessage(String classification, String message) {
         this.classification = classification;
         this.message = message;
+        this.createdAt = LocalDateTime.now();
     }
 
-    // Конструктор с тремя параметрами для SpamController
-    public SmsMessage(String message, String classification, String details) {
-        this.message = message;
-        this.classification = classification;
-        this.details = details;
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
 
-    // Getters and Setters
+    // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getClassification() { return classification; }
-    public void setClassification(String classification) {
-        this.classification = classification;
-    }
-
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
+
+    public String getClassification() { return classification; }
+    public void setClassification(String classification) { this.classification = classification; }
 
     public String getDetails() { return details; }
     public void setDetails(String details) { this.details = details; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    @Override
-    public String toString() {
-        return "SmsMessage{" +
-                "id=" + id +
-                ", classification='" + classification + '\'' +
-                ", message='" + message + '\'' +
-                ", details='" + details + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
-    }
 }

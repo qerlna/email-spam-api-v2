@@ -4,7 +4,7 @@ public class AuthResponse {
     private String token;
     private String username;
     private String role;
-    private String message; // Добавим поле для дополнительных сообщений
+    private String message;
 
     // Конструкторы
     public AuthResponse() {}
@@ -13,13 +13,7 @@ public class AuthResponse {
         this.token = token;
         this.username = username;
         this.role = role;
-    }
-
-    public AuthResponse(String token, String username, String role, String message) {
-        this.token = token;
-        this.username = username;
-        this.role = role;
-        this.message = message;
+        this.message = "Authentication successful";
     }
 
     // Геттеры и сеттеры

@@ -7,8 +7,6 @@ import com.example.emailspamapi.model.User;
 import com.example.emailspamapi.model.UserRole;
 import com.example.emailspamapi.repository.UserRepository;
 import com.example.emailspamapi.service.CustomUserDetailsService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentication", description = "API for user authentication and registration")
 public class AuthController {
 
     @Autowired
@@ -39,82 +36,72 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    @Operation(summary = "User login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthRequest authRequest) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getUsername(),
+                            authRequest.getPassword()
+                    )
             );
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Invalid username or password");
         }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
-        final String jwt = jwtUtil.generateToken(userDetails);
+        final String token = jwtUtil.generateToken(userDetails);
 
-        User user = userRepository.findByUsername(authRequest.getUsername()).orElseThrow();
+        User user = userRepository.findByUsername(authRequest.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return ResponseEntity.ok(new AuthResponse(jwt, user.getUsername(), user.getRole().name()));
+        return ResponseEntity.ok(new AuthResponse(
+                token,
+                user.getUsername(),
+                user.getRole().name()
+        ));
     }
 
     @PostMapping("/register")
-    @Operation(summary = "User registration")
     public ResponseEntity<?> register(@Valid @RequestBody AuthRequest authRequest) {
+        // Проверка существования пользователя
         if (userRepository.existsByUsername(authRequest.getUsername())) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
 
-        // Проверяем email если он предоставлен
-        if (authRequest.getEmail() != null && userRepository.existsByEmail(authRequest.getEmail())) {
-            return ResponseEntity.badRequest().body("Email already exists");
-        }
-
+        // Создание нового пользователя
         User user = new User();
         user.setUsername(authRequest.getUsername());
         user.setPassword(passwordEncoder.encode(authRequest.getPassword()));
 
-        // Используем предоставленный email или генерируем из username
+        // Email (опционально)
         if (authRequest.getEmail() != null && !authRequest.getEmail().isEmpty()) {
+            if (userRepository.existsByEmail(authRequest.getEmail())) {
+                return ResponseEntity.badRequest().body("Email already exists");
+            }
             user.setEmail(authRequest.getEmail());
         } else {
-            user.setEmail(authRequest.getUsername() + "@example.com");
+            user.setEmail(authRequest.getUsername() + "@emailspam.com");
         }
 
-        // Устанавливаем роль по умолчанию
+        // Роль по умолчанию
         user.setRole(UserRole.USER);
 
+        // Сохранение
         userRepository.save(user);
 
+        // Генерация токена
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
-        final String jwt = jwtUtil.generateToken(userDetails);
+        final String token = jwtUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(new AuthResponse(jwt, user.getUsername(), user.getRole().name()));
+        return ResponseEntity.ok(new AuthResponse(
+                token,
+                user.getUsername(),
+                user.getRole().name()
+        ));
     }
 
-    // Health check для аутентификации
     @GetMapping("/health")
-    @Operation(summary = "Authentication API health check")
     public ResponseEntity<String> health() {
-        return ResponseEntity.ok("Authentication API is running successfully!");
-    }
-
-    // Проверка валидности токена (опционально)
-    @PostMapping("/validate")
-    @Operation(summary = "Validate JWT token")
-    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String authHeader) {
-        try {
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                String username = jwtUtil.extractUsername(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-                if (jwtUtil.validateToken(token, userDetails)) {
-                    return ResponseEntity.ok(new AuthResponse(token, username, "Token is valid"));
-                }
-            }
-            return ResponseEntity.badRequest().body("Invalid token");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Invalid token");
-        }
+        return ResponseEntity.ok("Auth API is healthy");
     }
 }

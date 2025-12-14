@@ -1,6 +1,5 @@
 package com.example.emailspamapi.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -8,33 +7,36 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "username"),
+        @UniqueConstraint(columnNames = "email")
+})
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
-    @Column(unique = true, nullable = false)
+    @NotBlank
+    @Size(min = 3, max = 50)
+    @Column(unique = true)
     private String username;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email should be valid")
-    @Column(unique = true, nullable = false)
+    @NotBlank
+    @Size(max = 100)
+    @Email
+    @Column(unique = true)
     private String email;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // Скрываем пароль в JSON ответах
+    @NotBlank
+    @Size(min = 6, max = 100)
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role = UserRole.USER;
+    private UserRole role;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
@@ -42,23 +44,24 @@ public class User {
     // Конструкторы
     public User() {}
 
-    public User(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
-
     public User(String username, String email, String password, UserRole role) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
+        this.createdAt = LocalDateTime.now();
     }
 
-    // Автоматическое обновление updatedAt перед сохранением
+    // Жизненный цикл
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     // Геттеры и сеттеры
