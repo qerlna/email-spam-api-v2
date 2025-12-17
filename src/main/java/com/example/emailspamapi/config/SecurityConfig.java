@@ -56,6 +56,9 @@ public class SecurityConfig {
                 // Настраиваем авторизацию
                 .authorizeHttpRequests(auth -> auth
                         // ПУБЛИЧНЫЕ эндпоинты (без аутентификации)
+                        // ДОБАВЬ ЭТУ СТРОКУ:
+                        .requestMatchers("/", "/health").permitAll()
+
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/email/check-spam").permitAll()
                         .requestMatchers("/api/email/health").permitAll()
@@ -87,7 +90,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://localhost:8080",
+                "https://email-spam-fe09968dc16b.herokuapp.com"  // ДОБАВЬ ЭТО
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization", "Content-Type", "Accept", "X-Requested-With"
