@@ -17,19 +17,39 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    // Используем дефолтные значения на случай отсутствия properties
+    private String secret = "defaultSecretKeyForDevelopment1234567890";
+    private Long expiration = 86400000L; // 24 часа
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    // Опциональные сеттеры для @Value - только если свойства существуют
+    @Value("${jwt.secret:#{null}}")
+    public void setSecret(String secret) {
+        if (secret != null && !secret.isEmpty()) {
+            this.secret = secret;
+        }
+    }
+
+    @Value("${jwt.expiration:#{null}}")
+    public void setExpiration(Long expiration) {
+        if (expiration != null) {
+            this.expiration = expiration;
+        }
+    }
 
     private SecretKey getSigningKey() {
-        // Если секрет слишком короткий, дополняем его
+        // Гарантируем, что ключ достаточной длины
+        byte[] keyBytes;
         if (secret.length() < 32) {
-            String paddedSecret = String.format("%-32s", secret).substring(0, 32);
-            return Keys.hmacShaKeyFor(paddedSecret.getBytes());
+            // Дополняем до 32 байт
+            StringBuilder padded = new StringBuilder(secret);
+            while (padded.length() < 32) {
+                padded.append("0");
+            }
+            keyBytes = padded.substring(0, 32).getBytes();
+        } else {
+            keyBytes = secret.substring(0, 32).getBytes();
         }
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String extractUsername(String token) {
@@ -46,21 +66,38 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid JWT token: " + e.getMessage());
+        }
     }
 
     private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        try {
+            return extractExpiration(token).before(new Date());
+        } catch (Exception e) {
+            return true; // Если ошибка - считаем токен невалидным
+        }
     }
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", userDetails.getAuthorities());
+        // Добавляем только если authorities не null
+        if (userDetails.getAuthorities() != null) {
+            claims.put("role", userDetails.getAuthorities());
+        }
         return createToken(claims, userDetails.getUsername());
+    }
+
+    // Перегруженный метод для простого использования
+    public String generateToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -74,7 +111,22 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        try {
+            final String username = extractUsername(token);
+            return (username != null &&
+                    username.equals(userDetails.getUsername()) &&
+                    !isTokenExpired(token));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // Упрощенная валидация для тестов
+    public Boolean validateToken(String token) {
+        try {
+            return !isTokenExpired(token) && extractUsername(token) != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -65,7 +65,7 @@ public class SpamController {
             );
         }
 
-        // Обрабатываем сообщение
+        // Обрабатывает сообщение
         MessageResponse response = spamDetectionService.classifyMessage(text);
         return ResponseEntity.ok(response);
     }
@@ -118,7 +118,7 @@ public class SpamController {
             </head>
             <body>
                 <h1>📧 Email Spam Detection API</h1>
-                <p>Дипломный проект - Система классификации сообщений</p>
+                <p>сообщения</p>
                 <a href="/swagger-ui.html" class="link">📖 Swagger UI - Документация API</a>
                 <a href="/api/email/health" class="link">🩺 Проверка здоровья сервиса</a>
                 <a href="/api/auth/health" class="link">🔐 Проверка аутентификации</a>

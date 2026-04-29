@@ -2,6 +2,7 @@ package com.example.emailspamapi.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,7 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -23,9 +23,10 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // Используем @Lazy для отложенной загрузки, чтобы избежать циклических зависимостей
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(@Lazy JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
@@ -53,36 +54,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Настраиваем авторизацию
+                // Настраиваем авторизацию - ВРЕМЕННО РАЗРЕШАЕМ ВСЁ
                 .authorizeHttpRequests(auth -> auth
-                        // ПУБЛИЧНЫЕ эндпоинты (без аутентификации)
-                        // ДОБАВЬ ЭТУ СТРОКУ:
-                        .requestMatchers("/", "/health").permitAll()
+                        .anyRequest().permitAll()  // ВРЕМЕННО: все запросы разрешены
+                );
 
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/email/check-spam").permitAll()
-                        .requestMatchers("/api/email/health").permitAll()
-                        .requestMatchers("/error").permitAll()
-
-                        // Swagger/OpenAPI
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
-
-                        // ЗАЩИЩЕННЫЕ эндпоинты
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/email/history/**").authenticated()
-
-                        // Все остальные запросы требуют аутентификации
-                        .anyRequest().authenticated()
-                )
-
-                // Добавляем JWT фильтр
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        // ВРЕМЕННО ЗАКОММЕНТИРУЙТЕ фильтр, пока не настроена база
+        // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -93,7 +71,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:8080",
-                "https://email-spam-fe09968dc16b.herokuapp.com"  // ДОБАВЬ ЭТО
+                "https://email-spam-fe09968dc16b.herokuapp.com"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
