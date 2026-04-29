@@ -17,11 +17,10 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Используем дефолтные значения на случай отсутствия properties
     private String secret = "defaultSecretKeyForDevelopment1234567890";
     private Long expiration = 86400000L; // 24 часа
 
-    // Опциональные сеттеры для @Value - только если свойства существуют
+
     @Value("${jwt.secret:#{null}}")
     public void setSecret(String secret) {
         if (secret != null && !secret.isEmpty()) {
@@ -37,10 +36,8 @@ public class JwtUtil {
     }
 
     private SecretKey getSigningKey() {
-        // Гарантируем, что ключ достаточной длины
         byte[] keyBytes;
         if (secret.length() < 32) {
-            // Дополняем до 32 байт
             StringBuilder padded = new StringBuilder(secret);
             while (padded.length() < 32) {
                 padded.append("0");
@@ -81,20 +78,19 @@ public class JwtUtil {
         try {
             return extractExpiration(token).before(new Date());
         } catch (Exception e) {
-            return true; // Если ошибка - считаем токен невалидным
+            return true;
         }
     }
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        // Добавляем только если authorities не null
+
         if (userDetails.getAuthorities() != null) {
             claims.put("role", userDetails.getAuthorities());
         }
         return createToken(claims, userDetails.getUsername());
     }
 
-    // Перегруженный метод для простого использования
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, username);
@@ -121,7 +117,6 @@ public class JwtUtil {
         }
     }
 
-    // Упрощенная валидация для тестов
     public Boolean validateToken(String token) {
         try {
             return !isTokenExpired(token) && extractUsername(token) != null;

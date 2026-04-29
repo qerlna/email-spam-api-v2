@@ -17,7 +17,6 @@ public class SpamDetectionService {
     @Autowired
     private SmsMessageRepository messageRepository;
 
-    // Расширенный список спам-ключевых слов (включая варианты)
     private final List<String> spamKeywords = Arrays.asList(
             "free", "win", "prize", "click", "now", "offer", "limited",
             "winner", "congratulations", "congrats", "urgent", "cash",
@@ -32,10 +31,8 @@ public class SpamDetectionService {
             return new MessageResponse("ham", 0.0, "Empty message");
         }
 
-        // Детальный анализ
         SpamAnalysisResult analysis = analyzeText(text);
 
-        // Логи для отладки
         System.out.println("=== SPAM ANALYSIS ===");
         System.out.println("Text: " + text);
         System.out.println("Found spam words: " + analysis.foundSpamWords);
@@ -47,7 +44,6 @@ public class SpamDetectionService {
         System.out.println("Is spam: " + analysis.isSpam);
         System.out.println("=====================");
 
-        // Сохраняем в базу
         SmsMessage message = new SmsMessage();
         message.setMessage(text);
         message.setClassification(analysis.isSpam ? "spam" : "ham");
@@ -66,7 +62,7 @@ public class SpamDetectionService {
         String lowerText = text.toLowerCase();
         StringBuilder details = new StringBuilder();
 
-        // 1. Ищем спам-слова
+
         List<String> foundSpamWords = spamKeywords.stream()
                 .filter(keyword -> containsWord(lowerText, keyword))
                 .toList();
@@ -76,14 +72,12 @@ public class SpamDetectionService {
             details.append("Spam words: ").append(String.join(", ", foundSpamWords));
         }
 
-        // 2. Считаем восклицательные знаки
         long exclamationCount = text.chars().filter(ch -> ch == '!').count();
         if (exclamationCount > 0) {
             if (details.length() > 0) details.append(" | ");
             details.append("! count: ").append(exclamationCount);
         }
 
-        // 3. Проверяем денежные символы
         boolean hasMoneySymbols = text.contains("$") ||
                 text.contains("€") ||
                 text.contains("£") ||
@@ -95,7 +89,6 @@ public class SpamDetectionService {
             details.append("Has money symbols");
         }
 
-        // 4. Анализ заглавных букв
         long uppercaseCount = text.chars().filter(Character::isUpperCase).count();
         double uppercaseRatio = text.length() > 0 ? (double) uppercaseCount / text.length() : 0;
 
@@ -104,43 +97,33 @@ public class SpamDetectionService {
             details.append(String.format("UPPERCASE: %.0f%%", uppercaseRatio * 100));
         }
 
-        // 5. Проверяем URL
         boolean hasUrl = containsUrl(text);
         if (hasUrl) {
             if (details.length() > 0) details.append(" | ");
             details.append("Contains URL");
         }
 
-        // 6. Проверяем телефонные номера
         boolean hasPhone = Pattern.compile("\\d{10,}").matcher(text).find();
         if (hasPhone) {
             if (details.length() > 0) details.append(" | ");
             details.append("Has phone number");
         }
 
-        // Вычисляем общий балл
         double totalScore = 0;
 
-        // Спам-слова: +3 балла за каждое
         totalScore += spamWordCount * 3;
 
-        // Восклицательные знаки: +2 балла если >2
         if (exclamationCount > 2) totalScore += 2;
         else if (exclamationCount > 0) totalScore += 1;
 
-        // Денежные символы: +3 балла
         if (hasMoneySymbols) totalScore += 3;
 
-        // Много заглавных: +2 балла
         if (uppercaseRatio > 0.5) totalScore += 2;
 
-        // URL или телефон: +4 балла
         if (hasUrl || hasPhone) totalScore += 4;
 
-        // Определяем спам
-        boolean isSpam = totalScore >= 5; // Порог 5 баллов
+        boolean isSpam = totalScore >= 5;
 
-        // Уверенность (чем больше баллов, тем увереннее)
         double confidence = Math.min(0.95, totalScore / 10.0);
         if (isSpam && confidence < 0.6) confidence = 0.6;
         if (!isSpam && confidence < 0.7) confidence = 0.7;
@@ -160,14 +143,12 @@ public class SpamDetectionService {
         );
     }
 
-    // Вспомогательный метод для поиска целых слов
     private boolean containsWord(String text, String word) {
         return Pattern.compile("\\b" + Pattern.quote(word) + "\\b", Pattern.CASE_INSENSITIVE)
                 .matcher(text)
                 .find();
     }
 
-    // Проверка на URL
     private boolean containsUrl(String text) {
         return text.matches(".*https?://.*") ||
                 text.matches(".*www\\..*\\..*") ||
@@ -176,7 +157,6 @@ public class SpamDetectionService {
                 text.toLowerCase().contains(".org");
     }
 
-    // Внутренний класс для результатов анализа
     private static class SpamAnalysisResult {
         List<String> foundSpamWords;
         int spamWordCount;

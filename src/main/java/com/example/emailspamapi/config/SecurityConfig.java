@@ -23,7 +23,6 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // Используем @Lazy для отложенной загрузки, чтобы избежать циклических зависимостей
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(@Lazy JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -44,23 +43,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Отключаем CSRF для API
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Настраиваем CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // Делаем сессии stateless (без сохранения состояния)
+
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Настраиваем авторизацию - ВРЕМЕННО РАЗРЕШАЕМ ВСЁ
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()  // ВРЕМЕННО: все запросы разрешены
+                        .anyRequest().permitAll()
                 );
 
-        // ВРЕМЕННО ЗАКОММЕНТИРУЙТЕ фильтр, пока не настроена база
-        // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

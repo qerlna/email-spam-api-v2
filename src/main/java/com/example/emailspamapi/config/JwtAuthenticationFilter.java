@@ -23,10 +23,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // ВРЕМЕННО: не инжектим UserDetailsService, чтобы избежать зависимостей
-    // @Autowired
-    // private UserDetailsService userDetailsService;
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
@@ -43,15 +39,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             final String jwt = authHeader.substring(7);
 
-            // Простая валидация токена без UserDetailsService
             if (jwtUtil.validateToken(jwt)) {
                 String username = jwtUtil.extractUsername(jwt);
 
-                // Создаем простой UserDetails для аутентификации
-                // ВРЕМЕННО: используем заглушку вместо реального UserDetailsService
+
                 UserDetails userDetails = User.builder()
                         .username(username)
-                        .password("") // пустой пароль для JWT аутентификации
+                        .password("")
                         .authorities(Collections.emptyList())
                         .build();
 
@@ -64,19 +58,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (Exception e) {
-            // Логируем ошибку, но продолжаем цепочку фильтров
             logger.debug("JWT authentication failed: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);
     }
 
-    // Переопределяем, чтобы фильтр не применялся к определенным путям
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
 
-        // Не применяем фильтр к публичным эндпоинтам
         return path.startsWith("/api/auth/") ||
                 path.startsWith("/api/email/check-spam") ||
                 path.startsWith("/api/email/health") ||

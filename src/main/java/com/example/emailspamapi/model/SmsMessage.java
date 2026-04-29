@@ -23,7 +23,7 @@ public class SmsMessage {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Конструкторы
+
     public SmsMessage() {}
 
     public SmsMessage(String classification, String message) {
@@ -39,7 +39,6 @@ public class SmsMessage {
         }
     }
 
-    // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

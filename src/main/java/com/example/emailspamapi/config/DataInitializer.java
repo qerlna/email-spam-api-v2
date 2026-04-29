@@ -39,7 +39,7 @@ public class DataInitializer implements CommandLineRunner {
             User admin = new User("admin", "admin@emailspam.com",
                     passwordEncoder.encode("admin123"), UserRole.ADMIN);
             userRepository.save(admin);
-            System.out.println("✅ Created admin: admin / admin123");
+            System.out.println("Created admin: admin / admin123");
         }
 
         // Пользователь
@@ -47,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
             User user = new User("user", "user@emailspam.com",
                     passwordEncoder.encode("user123"), UserRole.USER);
             userRepository.save(user);
-            System.out.println("✅ Created user: user / user123");
+            System.out.println("Created user: user / user123");
         }
     }
 
@@ -65,7 +65,7 @@ public class DataInitializer implements CommandLineRunner {
                     new SmsMessage("ham", "Happy birthday! Hope you have a great day"),
                     new SmsMessage("spam", "Congratulations! You're selected for a free gift")
             ));
-            System.out.println("✅ Loaded 10 demo messages");
+            System.out.println("Loaded 10 demo messages");
         }
     }
 }

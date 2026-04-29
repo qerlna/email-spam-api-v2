@@ -24,25 +24,19 @@ public class SpamController {
     @Autowired
     private SmsMessageRepository smsMessageRepository;
 
-    // Проверка сообщения на спам (публичный доступ)
     @PostMapping("/check-spam")
     public ResponseEntity<?> checkEmailSpam(@RequestBody MessageRequest request) {
-        // Добавляем логирование
         System.out.println("=== CONTROLLER DEBUG ===");
         System.out.println("Request object: " + request);
 
-        // Получаем текст из request
         String text = null;
         if (request != null) {
-            // Пробуем разные варианты получения текста
             try {
-                // Если используется getText()
                 java.lang.reflect.Method getTextMethod = request.getClass().getMethod("getText");
                 text = (String) getTextMethod.invoke(request);
                 System.out.println("Got text via getText(): " + text);
             } catch (Exception e1) {
                 try {
-                    // Если используется getMessage()
                     java.lang.reflect.Method getMessageMethod = request.getClass().getMethod("getMessage");
                     text = (String) getMessageMethod.invoke(request);
                     System.out.println("Got text via getMessage(): " + text);
@@ -55,7 +49,6 @@ public class SpamController {
         System.out.println("Final text: " + text);
         System.out.println("=== END DEBUG ===");
 
-        // Проверяем что текст есть
         if (text == null || text.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(
                     Map.of(
@@ -65,33 +58,28 @@ public class SpamController {
             );
         }
 
-        // Обрабатывает сообщение
         MessageResponse response = spamDetectionService.classifyMessage(text);
         return ResponseEntity.ok(response);
     }
 
-    // История сообщений (требует аутентификации)
     @GetMapping("/history")
     public ResponseEntity<List<SmsMessage>> getEmailCheckHistory() {
         List<SmsMessage> messages = smsMessageRepository.findAllByOrderByCreatedAtDesc();
         return ResponseEntity.ok(messages);
     }
 
-    // Только спам
     @GetMapping("/history/spam")
     public ResponseEntity<List<SmsMessage>> getSpamEmails() {
         List<SmsMessage> spamMessages = smsMessageRepository.findByClassification("spam");
         return ResponseEntity.ok(spamMessages);
     }
 
-    // Только нормальные сообщения
     @GetMapping("/history/ham")
     public ResponseEntity<List<SmsMessage>> getHamEmails() {
         List<SmsMessage> hamMessages = smsMessageRepository.findByClassification("ham");
         return ResponseEntity.ok(hamMessages);
     }
 
-    // Health check
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> healthStatus = new HashMap<>();
@@ -102,7 +90,6 @@ public class SpamController {
         return ResponseEntity.ok(healthStatus);
     }
 
-    // Главная страница
     @GetMapping("/")
     public String home() {
         return """
@@ -118,10 +105,10 @@ public class SpamController {
             </head>
             <body>
                 <h1>📧 Email Spam Detection API</h1>
-                <p>сообщения</p>
-                <a href="/swagger-ui.html" class="link">📖 Swagger UI - Документация API</a>
-                <a href="/api/email/health" class="link">🩺 Проверка здоровья сервиса</a>
-                <a href="/api/auth/health" class="link">🔐 Проверка аутентификации</a>
+                <p>emails</p>
+                <a href="/swagger-ui.html" class="link">📖 </a>
+                <a href="/api/email/health" class="link">🩺 </a>
+                <a href="/api/auth/health" class="link">🔐 </a>
             </body>
             </html>
             """;

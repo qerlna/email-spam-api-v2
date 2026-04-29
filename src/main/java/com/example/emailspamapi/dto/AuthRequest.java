@@ -15,7 +15,6 @@ public class AuthRequest {
 
     private String email;
 
-    // Конструкторы
     public AuthRequest() {}
 
     public AuthRequest(String username, String password) {
@@ -23,7 +22,7 @@ public class AuthRequest {
         this.password = password;
     }
 
-    // Геттеры и сеттеры
+
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 

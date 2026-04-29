@@ -6,7 +6,6 @@ public class AuthResponse {
     private String role;
     private String message;
 
-    // Конструкторы
     public AuthResponse() {}
 
     public AuthResponse(String token, String username, String role) {
@@ -16,7 +15,6 @@ public class AuthResponse {
         this.message = "Authentication successful";
     }
 
-    // Геттеры и сеттеры
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
 

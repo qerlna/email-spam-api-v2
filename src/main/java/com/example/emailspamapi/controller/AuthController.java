@@ -63,17 +63,14 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody AuthRequest authRequest) {
-        // Проверка существования пользователя
         if (userRepository.existsByUsername(authRequest.getUsername())) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
 
-        // Создание нового пользователя
         User user = new User();
         user.setUsername(authRequest.getUsername());
         user.setPassword(passwordEncoder.encode(authRequest.getPassword()));
 
-        // Email (опционально)
         if (authRequest.getEmail() != null && !authRequest.getEmail().isEmpty()) {
             if (userRepository.existsByEmail(authRequest.getEmail())) {
                 return ResponseEntity.badRequest().body("Email already exists");
@@ -83,13 +80,10 @@ public class AuthController {
             user.setEmail(authRequest.getUsername() + "@emailspam.com");
         }
 
-        // Роль по умолчанию
         user.setRole(UserRole.USER);
 
-        // Сохранение
         userRepository.save(user);
 
-        // Генерация токена
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
         final String token = jwtUtil.generateToken(userDetails);
 

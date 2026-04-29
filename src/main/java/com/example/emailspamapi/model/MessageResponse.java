@@ -9,7 +9,6 @@ public class MessageResponse {
     private String message;
     private String error;
 
-    // Constructors
     public MessageResponse() {}
 
     public MessageResponse(String classification, double confidence, String message) {

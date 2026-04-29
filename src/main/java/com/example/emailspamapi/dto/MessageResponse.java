@@ -6,7 +6,7 @@ public class MessageResponse {
     private String details;
     private String message;
 
-    // Конструкторы
+
     public MessageResponse() {}
 
     public MessageResponse(String classification, double confidence, String details) {
@@ -16,7 +16,6 @@ public class MessageResponse {
         this.message = "Message analyzed successfully";
     }
 
-    // Геттеры и сеттеры
     public String getClassification() { return classification; }
     public void setClassification(String classification) { this.classification = classification; }
 

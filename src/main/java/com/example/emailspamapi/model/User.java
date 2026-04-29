@@ -41,7 +41,7 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Конструкторы
+
     public User() {}
 
     public User(String username, String email, String password, UserRole role) {
@@ -52,7 +52,7 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Жизненный цикл
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -64,7 +64,7 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 
-    // Геттеры и сеттеры
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
