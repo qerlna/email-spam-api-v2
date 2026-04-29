@@ -5,6 +5,8 @@ Project Overview
 The system provides a programmatic way to manage emails and automatically classify them as Spam or Ham (normal) using a custom scoring algorithm. It is designed with a focus on scalability, clean architecture, and ease of integration.
 
 Live API: https://email-spam-api-v2.onrender.com
+Full Project Access: https://drive.google.com/file/d/1ZbMcSifDlRR3Oh8kbYyRllm6NS8rT5VT/view?usp=share_link
+
 
 Interactive Documentation: Swagger UI
 
