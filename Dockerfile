@@ -4,7 +4,7 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 # Запуск приложения
-FROM eclipse-temurin:17-jdk-focal
+FROM eclipse-temurin:17-jre-alpine
 COPY --from=build /target/email-spam-api-1.0.0.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","app.jar"]
