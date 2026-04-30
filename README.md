@@ -8,6 +8,8 @@ Live API: https://email-spam-api-v2.onrender.com
 
 Full Project Access: https://drive.google.com/file/d/1ZbMcSifDlRR3Oh8kbYyRllm6NS8rT5VT/view?usp=share_link
 
+Video Presentation: https://drive.google.com/file/d/1hcpk_GAOX3tMrRCwGVCrOJ7RgYfHzKW6/view?usp=sharing
+
 
 Interactive Documentation: Swagger UI
 
